@@ -78,32 +78,33 @@ void callback(String topic, byte* message, unsigned int length) {
 // This functions reconnects your ESP8266 to your MQTT broker
 // Change the function below if you want to subscribe to more topics with your ESP8266 
 void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    /*
-     YOU MIGHT NEED TO CHANGE THIS LINE, IF YOU'RE HAVING PROBLEMS WITH MQTT MULTIPLE CONNECTIONS
-     To change the ESP device ID, you will have to give a new name to the ESP8266.
-     Here's how it looks:
-       if (client.connect("ESP8266Client")) {
-     You can do it like this:
-       if (client.connect("ESP1_Office")) {
-     Then, for the other ESP:
-       if (client.connect("ESP2_Garage")) {
-      That should solve your MQTT multiple connections problem
-    */
-    if (client.connect("ESP8266Client")) {
-      Serial.println("connected");  
-      // Subscribe or resubscribe to a topic
-      // You can subscribe to more topics (to control more LEDs in this example)
-      client.subscribe("test/GreenLED");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
+	  // Loop until we're reconnected
+	while (!client.connected()) {
+	    Serial.print("Attempting MQTT connection...");
+	    // Attempt to connect
+	    /*
+	     YOU MIGHT NEED TO CHANGE THIS LINE, IF YOU'RE HAVING PROBLEMS WITH MQTT MULTIPLE CONNECTIONS
+	     To change the ESP device ID, you will have to give a new name to the ESP8266.
+	     Here's how it looks:
+	       if (client.connect("ESP8266Client")) {
+	     You can do it like this:
+	       if (client.connect("ESP1_Office")) {
+	     Then, for the other ESP:
+	       if (client.connect("ESP2_Garage")) {
+	      That should solve your MQTT multiple connections problem
+	    */
+	if (client.connect("ESP8266Client")) {
+	      Serial.println("connected");  
+	      // Subscribe or resubscribe to a topic
+	      // You can subscribe to more topics (to control more LEDs in this example)
+	      client.subscribe("test/GreenLED");
+	    } 
+	else {
+	      Serial.print("failed, rc=");
+	      Serial.print(client.state());
+	      Serial.println(" try again in 5 seconds");
+	      // Wait 5 seconds before retrying
+	      delay(5000);
     }
   }
 }
@@ -111,12 +112,12 @@ void reconnect() {
 // Sets your mqtt broker and sets the callback function
 // The callback function is what receives messages and actually controls the LEDs
 void setup() {
-  pinMode(lamp, OUTPUT);
-  dht.begin();
-  Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
+	  pinMode(lamp, OUTPUT);
+	  dht.begin();
+	  Serial.begin(115200);
+	  setup_wifi();
+	  client.setServer(mqtt_server, 1883);
+	  client.setCallback(callback);
 }
 // For this project, you don't need to change anything in the loop function. Basically it ensures that you ESP is connected to your broker
 
@@ -124,72 +125,75 @@ void setup() {
 
 void loop() {
   
-  // ------ this is the main loop which will repeat forever
-    
-  if (!client.connected()) {    // first check if we have connected to MQTT if not reconnect.
-    reconnect();
-  }
+	  // ------ this is the main loop which will repeat forever
 
-  if(!client.loop()){             // make sure we are still subscribed
-     client.connect("ESP8266Client");   
-  }                     
-  if (measure_DHT() == true){          // only publish MQTT if DHT has correctly returned a value      
-    }
-  else {
-    Serial.println("DHT FAIL: check connection");
-    }
-  //Serial.flush();
-  delay(500);
+	  if (!client.connected()) {    			// first check if we have connected to MQTT if not reconnect.
+	    reconnect();
+	  }
+
+	  if(!client.loop()){            			 // make sure we are still subscribed
+	     client.connect("ESP8266Client");   
+	  }
+
+	  if (measure_DHT() == true){          			// only publish MQTT if DHT has correctly returned a value 
+	     delay(500);
+	  }
+	  else {
+	      Serial.println("DHT FAIL: check connection");
+	      delay(3000);
+	  }
+	  //Serial.flush();
+	  delay(500);
 }
 
 
 ----------------------------------------------------------------------------------------------------------- end of loop()
 bool measure_DHT(){
 
-      // Publishes new temperature and humidity every 30 seconds
-	  static long now = millis(); 
+	// Publishes new temperature and humidity every 30 seconds
+	static long now = millis(); 
 
-      if (now - lastMeasure > 30000) {    //make sure 30000 milli seconds have past since last time
+	if (now - lastMeasure > 30000) {    //make sure 30000 milli seconds have past since last time
 
-        static long lastMeasure = now;
-        // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-        static float h = dht.readHumidity();
-        // Read temperature as Celsius (the default)
-        static float t = dht.readTemperature();
-        // Read temperature as Fahrenheit (isFahrenheit = true)
-        static float f = dht.readTemperature(true);
-        // Check if any reads failed and exit early (to try again).
+	static long lastMeasure = now;
+	// Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+	static float h = dht.readHumidity();
+	// Read temperature as Celsius (the default)
+	static float t = dht.readTemperature();
+	// Read temperature as Fahrenheit (isFahrenheit = true)
+	static float f = dht.readTemperature(true);
+	// Check if any reads failed and exit early (to try again).
 
 
-        if (isnan(h) || isnan(t) || isnan(f)) {                   //test if readings make sense if not return a false boolian
-            Serial.println("Failed to read from DHT sensor!");
-            return false;
-        }
+	if (isnan(h) || isnan(t) || isnan(f)) {                   //test if readings make sense if not return a false boolian
+	    Serial.println("Failed to read from DHT sensor!");
+	    return false;
+	}
 
-        static float hic = dht.computeHeatIndex(t, h, false);                  // if true then compute hic and return true a true boolian
-        // Computes temperature values in Celsius
-        static char temperatureTemp[7];
-        dtostrf(hic, 6, 2, temperatureTemp);
-        // Uncomment to compute temperature values in Fahrenheit 
-        // float hif = dht.computeHeatIndex(f, h);
-        // static char temperatureTemp[7];
-        // dtostrf(hic, 6, 2, temperatureTemp);
-        static char humidityTemp[7];
-        dtostrf(h, 6, 2, humidityTemp);
-        // Publishes Temperature and Humidity values
-        client.publish("room/temperature", temperatureTemp);
-        client.publish("room/humidity", humidityTemp);
-        Serial.print("Humidity: ");
-        Serial.print(h);
-        Serial.print(" %\t Temperature: ");
-        Serial.print(t);
-        Serial.print(" *C ");
-        Serial.print(f);
-        Serial.print(" *F\t Heat index: ");
-        Serial.print(hic);
-        Serial.println(" *C ");
-        // Serial.print(hif);
-        // Serial.println(" *F");
-        return true;
+	static float hic = dht.computeHeatIndex(t, h, false);                  // if true then compute hic and return true a true boolian
+	// Computes temperature values in Celsius
+	static char temperatureTemp[7];
+	dtostrf(hic, 6, 2, temperatureTemp);
+	// Uncomment to compute temperature values in Fahrenheit 
+	// float hif = dht.computeHeatIndex(f, h);
+	// static char temperatureTemp[7];
+	// dtostrf(hic, 6, 2, temperatureTemp);
+	static char humidityTemp[7];
+	dtostrf(h, 6, 2, humidityTemp);
+	// Publishes Temperature and Humidity values
+	client.publish("room/temperature", temperatureTemp);
+	client.publish("room/humidity", humidityTemp);
+	Serial.print("Humidity: ");
+	Serial.print(h);
+	Serial.print(" %\t Temperature: ");
+	Serial.print(t);
+	Serial.print(" *C ");
+	Serial.print(f);
+	Serial.print(" *F\t Heat index: ");
+	Serial.print(hic);
+	Serial.println(" *C ");
+	// Serial.print(hif);
+	// Serial.println(" *F");
+	return true;
+	}
  }
-  
