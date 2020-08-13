@@ -24,7 +24,7 @@ const int lamp = 4;
 // Initialize DHT sensor.
 DHT dht(DHTPin, DHTTYPE);
 // Timers auxiliar variables
-
+static long lastMeasure = 0; 
 
 // Don't change the function below. This functions connects your ESP8266 to your router
 void setup_wifi() {
@@ -147,7 +147,7 @@ void loop() {
 }
 
 
------------------------------------------------------------------------------------------------------------ end of loop()
+//----------------------------------------------------------------------------------------------------------- end of loop()
 bool measure_DHT(){
 
 	// Publishes new temperature and humidity every 30 seconds
@@ -155,7 +155,7 @@ bool measure_DHT(){
 
 	if (now - lastMeasure > 30000) {    //make sure 30000 milli seconds have past since last time
 
-	static long lastMeasure = now;
+	lastMeasure = now;
 	// Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
 	static float h = dht.readHumidity();
 	// Read temperature as Celsius (the default)
